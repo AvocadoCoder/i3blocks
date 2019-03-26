@@ -1,0 +1,157 @@
+#!/bin/bash
+
+
+
+
+#########################################################################################################
+#########################################################################################################
+### German Quero.............GitHub:AvocadoCoder............Script for i3block to show battery status ###
+### and send notifications in 50% 30% 25% 10% and 5%. It uses notify-send and an archive named        ###
+### battery-notification-status that saves off if a notification has been sent and on if it hasn't.   ###
+#########################################################################################################
+#########################################################################################################
+#
+#
+#
+#
+#
+#
+#
+
+
+
+# Here saves Battery porcentage, it saves the fourth element of acpi -b and then removes the % symbol and the comma
+
+BAT=$(acpi -b | awk '{ print $4}')
+BAT=${BAT::-2}
+
+# Here saves Charge Status, it saves the third element of capi -b and then removes the comma
+
+STAT=$(acpi -b | awk '{ print $3}')
+STAT=${STAT::-1}
+
+# Here saves the Time Remaining till charge or the Time Remaining till shutdown
+
+TIME=$(acpi -b | awk '{printf $5}')
+
+# If the Status is full the percentage has more figures so the % symbol and the comma removing doesn't work well so it set BAT to 100
+
+if [ $STAT == 'Full' ]; then
+	BAT=100
+fi
+
+# Here prints Battery percentage and status in the i3blocks bar
+
+echo "BAT: $BAT%, $STAT"
+
+# If the status is discharguin, and the archive says "on", sends a notification at 50% 30% 25% 10% and 5%, diferent in each case
+# with a message and the remaining time till Shutdown and sets the archvive content to "off". If the archive says "off" but
+# the battery percentage is still 50% 30% 25% 10% or 5% it reset it to "off"(it's tecnically not needed but for the memory it
+# cost and complexity it has doesn't matter and make me fell more confident with the code), if the battery percentage is any
+# other it sets the archive to "on".
+#### Set LOCATION to where you want your battery-notifications-status archive to be, I recomend using the search and replace
+#### tool of your text editor
+
+if [ "$STAT" == "Discharging" ]; then
+	if [ "$(cat $HOME/LOCATION/battery-notification-status)" == "on" ]; then
+		case $BAT in
+		50)
+		 	notify-send "Battery" "Less than half-battery remaining. \n Remaining:$TIME" &&
+			echo "off"> $HOME/LOCATION/battery-notification-status	
+		;;
+		30)
+		 	notify-send "Battery" "Low battery. Please charge. \n Remaining:$TIME" &&
+			echo "off"> $HOME/LOCATION/battery-notification-status	
+		;;
+		25)
+		 	notify-send "Battery" "So low battery. Please charge.\n Remaining:$TIME" &&
+			echo "off"> $HOME/LOCATION/battery-notification-status	
+		;;
+		10)
+		 	notify-send "Battery" "Shutdown incomming. Please charge.\n Remaining:$TIME" &&
+			echo "off"> $HOME/LOCATION/battery-notification-status	
+		;;
+		5)
+		 	notify-send "Battery" "Shutdown truly incoming. Please charge.\n Remaining:$TIME" &&
+			echo "off"> $HOME/LOCATION/battery-notification-status	
+		;;
+		esac;
+	else
+		case $BAT in
+		50 | 30 | 25 | 10 | 5)
+			echo "off"> $HOME/LOCATION/battery-notification-status	
+		;;
+		*)
+			echo "on"> $HOME/LOCATION/battery-notification-status
+		;;
+		esac;
+	fi
+
+# If the status is charging, and the archive says "on", sends a notification that says charging and the remaining time for Full
+# and sets the archvive content to "off". If the archive says "off" it reset it to "off"(it's tecnically not needed but for the
+# memory it cost and complexity it has doesn't matter and make me fell more confident with the code).
+#### Set LOCATION to where you want your battery-notifications-status archive to be, I recomend using the search and replace
+#### tool of your text editor
+
+elif [ "$STAT" == "Charging" ]; then	
+	if [ "$(cat $HOME/LOCATION/battery-notification-status)" == "on" ]; then
+		notify-send "Battery" "Charging. \nRemaining:$TIME" &&
+		echo "off"> $HOME/LOCATION/battery-notification-status
+	else
+		echo "off"> $HOME/LOCATION/battery-notification-status	
+	fi
+
+# If the status if Full, and the archive says "off", sends a notification, and sets the archive to "on". If the archive says "on"
+# it reset it to "on"(it's tecnically not needed but for the memory it cost and complexity it has doesn't matter and make me fell
+# more confident with the code). You might notice in this case "on" and "off" works different, "off" makes notification appear and 
+# "on" don't. This is because the Full status comes straight from the Charguing status, so the archive is set to "off" before the
+# Full status appear.
+#### Set LOCATION to where you want your battery-notifications-status archive to be, I recomend using the search and replace
+#### tool of your text editor
+
+elif [ "$STAT" == "Full" ]; then
+	if [ "$(cat $HOME/LOCATION/battery-notification-status)" == "off" ]; then
+		notify-send "Battery" "Full." &&
+		echo "on"> $HOME/LOCATION/battery-notification-status
+	else
+		echo "on"> $HOME/LOCATION/battery-notification-status	
+	fi
+fi
+
+exit 0
+
+
+
+
+
+#
+#
+#
+#
+#
+#
+#
+#
+# This is how it implemented in i3blocks config
+#
+# [battery]
+# interval=5
+#
+#
+# Bug report:
+#
+#### Sometimes if percentage or status change, for example, you plug the Power Supply or the percentage goes down, just when the i3blocks
+# re-runs the script, time may be bugged and show domething a little bit strange lilke 3454:00:00 till shutdown, this is because the acpi
+# -b command calculates worng the remaining time just when something changes
+#
+#### Sometimes you my see some strange percentage and "Unknown" as status, it's fixed whenever it actualices, it happens with most battery
+# scripts I've used before, I guess when y¡something changes, it last a little to realise what happened.
+#
+#
+#
+#
+#########################################################################################################
+#########################################################################################################
+### German Quero.............GitHub:AvocadoCoder...........Script for i3block to show battery status. ###
+#########################################################################################################
+#########################################################################################################

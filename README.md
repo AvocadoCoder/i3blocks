@@ -1,6 +1,6 @@
 # i3blocks
 
-This is where I upload my i3blocks scripts. I try to make them as minimallistic and redeable as posible, so they are so suitable for begguinners.
+This is where I upload my i3blocks scripts. I try to make them as minimallistic and redeable as posible, so they are so suitable for beguinners.
 
 
 # Battery
